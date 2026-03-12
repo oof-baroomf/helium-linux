@@ -4,10 +4,12 @@ description: Package Helium as AppImage and tar.xz, upload artifacts
 inputs:
   private_key:
     description: 'GPG private key'
-    required: true
+    required: false
+    default: ""
   passphrase:
     description: 'Passphrase protecting the GPG private key'
-    required: true
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -29,7 +31,12 @@ runs:
       env:
         GPG_PRIVATE_KEY: ${{ inputs.private_key }}
         GPG_PASSPHRASE: ${{ inputs.passphrase }}
-      run: bash ./package/docker-package.sh --sign
+      run: |
+        args=()
+        if [[ -n "${GPG_PRIVATE_KEY}" && -n "${GPG_PASSPHRASE}" ]]; then
+          args+=(--sign)
+        fi
+        bash ./package/docker-package.sh "${args[@]}"
 
     - name: List build artifacts
       shell: bash

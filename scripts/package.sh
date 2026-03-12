@@ -24,7 +24,12 @@ if [ "$_arch" = "x64" ]; then
 fi
 
 _release_name="$_app_name-$_version-$_arch"
-_update_info="gh-releases-zsync|imputnet|helium-linux|latest|$_app_name-*-$_arch.AppImage.zsync"
+_release_repo_owner="${GITHUB_REPOSITORY_OWNER:-imputnet}"
+_release_repo_name="helium-linux"
+if [ -n "${GITHUB_REPOSITORY:-}" ]; then
+    _release_repo_name="${GITHUB_REPOSITORY#*/}"
+fi
+_update_info="gh-releases-zsync|${_release_repo_owner}|${_release_repo_name}|latest|$_app_name-*-$_arch.AppImage.zsync"
 _tarball_name="${_release_name}_linux"
 _tarball_dir="$_release_dir/$_tarball_name"
 
