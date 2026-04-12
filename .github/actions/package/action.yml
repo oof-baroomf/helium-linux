@@ -1,13 +1,15 @@
 name: Package AppImage
-description: Package Helium as AppImage and tar.xz, upload artifacts
+description: Package Helium as AppImage and upload artifacts
 
 inputs:
   private_key:
     description: 'GPG private key'
-    required: true
+    required: false
+    default: ""
   passphrase:
     description: 'Passphrase protecting the GPG private key'
-    required: true
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -29,8 +31,12 @@ runs:
       env:
         GPG_PRIVATE_KEY: ${{ inputs.private_key }}
         GPG_PASSPHRASE: ${{ inputs.passphrase }}
-        MAKE_DEB: 1
-      run: bash ./package/docker-package.sh --sign
+      run: |
+        args=()
+        if [[ -n "${GPG_PRIVATE_KEY}" && -n "${GPG_PASSPHRASE}" ]]; then
+          args+=(--sign)
+        fi
+        bash ./package/docker-package.sh "${args[@]}"
 
     - name: List build artifacts
       shell: bash
@@ -48,23 +54,5 @@ runs:
       with:
         name: helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}-AppImage
         path: build/release/helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}.AppImage*
-        if-no-files-found: error
-        compression-level: 0
-
-    - name: Upload tar.xz artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}-linux
-        path: |
-          build/release/helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}_linux.tar.xz
-          build/release/helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}_linux.tar.xz.asc
-        if-no-files-found: error
-        compression-level: 0
-
-    - name: Upload .deb artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: helium-${{ steps.version.outputs.version }}-${{ env.ARCH }}-deb
-        path: build/release/helium-bin_${{ steps.version.outputs.version }}-1_*.deb
         if-no-files-found: error
         compression-level: 0

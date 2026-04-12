@@ -67,6 +67,10 @@ fetch_sources() {
     if [ "$use_clone" = true ]; then
         local _host_arch_clone="$_host_arch"
         local _pgo_args=()
+        local _clone_attempt
+        local _clone_attempts=5
+        local _clone_delay=60
+        local _clone_rc=0
 
         if [ "$_host_arch_clone" = x64 ]; then
             _host_arch_clone="amd64"
@@ -82,14 +86,32 @@ fetch_sources() {
             fi
         fi
 
-        HOME=$(mktemp -d)
-        XDG_CONFIG_HOME="$HOME/.config"
-        export HOME XDG_CONFIG_HOME
+        for ((_clone_attempt = 1; _clone_attempt <= _clone_attempts; _clone_attempt++)); do
+            HOME=$(mktemp -d)
+            XDG_CONFIG_HOME="$HOME/.config"
+            export HOME XDG_CONFIG_HOME
 
-        "${_main_repo}/utils/clone.py" \
-            --sysroot "$_host_arch_clone" \
-            "${_pgo_args[@]}" \
-            -o "${_src_dir}"
+            rm -rf "${_src_dir}"
+            if "${_main_repo}/utils/clone.py" \
+                --sysroot "$_host_arch_clone" \
+                "${_pgo_args[@]}" \
+                -o "${_src_dir}"; then
+                _clone_rc=0
+                break
+            fi
+
+            _clone_rc=$?
+            rm -rf "$HOME"
+            if [ "$_clone_attempt" -eq "$_clone_attempts" ]; then
+                return "$_clone_rc"
+            fi
+
+            echo "clone.py failed with exit code ${_clone_rc}; retrying in ${_clone_delay}s (${_clone_attempt}/${_clone_attempts})" >&2
+            sleep "$_clone_delay"
+            if [ "$_clone_delay" -lt 300 ]; then
+                _clone_delay=$((_clone_delay * 2))
+            fi
+        done
     else
         "${_main_repo}/utils/downloads.py" retrieve -i "${_main_repo}/downloads.ini" -c "${_dl_cache}"
         "${_main_repo}/utils/downloads.py" unpack -i "${_main_repo}/downloads.ini" -c "${_dl_cache}" "${_src_dir}"

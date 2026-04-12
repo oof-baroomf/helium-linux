@@ -24,7 +24,12 @@ if [ "$_arch" = "x64" ]; then
 fi
 
 _release_name="$_app_name-$_version-$_arch"
-_update_info="gh-releases-zsync|imputnet|helium-linux|latest|$_app_name-*-$_arch.AppImage.zsync"
+_release_repo_owner="${GITHUB_REPOSITORY_OWNER:-imputnet}"
+_release_repo_name="helium-linux"
+if [ -n "${GITHUB_REPOSITORY:-}" ]; then
+    _release_repo_name="${GITHUB_REPOSITORY#*/}"
+fi
+_update_info="gh-releases-zsync|${_release_repo_owner}|${_release_repo_name}|latest|$_app_name-*-$_arch.AppImage.zsync"
 _tarball_name="${_release_name}_linux"
 _tarball_dir="$_release_dir/$_tarball_name"
 
@@ -58,7 +63,6 @@ for file in $_files; do
 done
 
 cp "$_root_dir/package/helium.desktop" "$_tarball_dir"
-cp "$_root_dir/package/apparmor.cfg" "$_tarball_dir"
 cp "$_root_dir/package/helium-wrapper.sh" "$_tarball_dir/helium-wrapper"
 
 wait
@@ -74,14 +78,7 @@ find "$_tarball_dir" -type f -exec file {} + \
     | awk -F: '/ELF/ {print $1}' \
     | xargs $_strip_cmd
 
-_size="$(du -sk "$_tarball_dir" | cut -f1)"
-
 pushd "$_release_dir"
-
-TAR_PATH="$_release_dir/$_tarball_name.tar.xz"
-tar vcf - "$_tarball_name" \
-    | pv -s"${_size}k" \
-    | xz -e9 > "$TAR_PATH" &
 
 # create AppImage
 rm -rf "$_app_dir"
@@ -110,15 +107,5 @@ appimagetool \
     "$_release_name.AppImage" "$@" &
 popd
 wait
-
-if [ "${MAKE_DEB:-0}" = 1 ]; then
-    "$_root_dir/package/mkdeb.sh" "$TAR_PATH"
-fi
-
-if [ -n "${SIGN_TARBALL:-}" ]; then
-    gpg --batch --pinentry-mode loopback \
-        --detach-sign --passphrase "$GPG_PASSPHRASE" \
-        --output "$TAR_PATH.asc" "$TAR_PATH"
-fi
 
 rm -rf "$_tarball_dir" "$_app_dir"
