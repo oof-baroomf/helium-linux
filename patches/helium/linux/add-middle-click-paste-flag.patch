@@ -1,12 +1,12 @@
 --- a/chrome/browser/helium_flag_choices.h
 +++ b/chrome/browser/helium_flag_choices.h
-@@ -35,7 +35,9 @@ namespace helium {
+@@ -37,7 +37,9 @@ namespace helium {
    constexpr const char kMiddleClickAutoscrollCommandLine[] = "middle-click-autoscroll";
    constexpr const char kHeliumCompactLocationWidthCommandLine[] =
        "helium-compact-location-width";
 +  constexpr const char kMiddleClickPasteEnabledCommandLine[] =
 +      "helium-middle-click-paste-enabled";
- 
+   constexpr const char kHeliumZenModeCommandLine[] = "helium-zen-mode";
  }  // namespace helium
  
  #endif  /* CHROME_BROWSER_HELIUM_FLAG_CHOICES_H_ */
@@ -20,7 +20,9 @@
 +     "Middle Click Paste",
 +     "Controls middle click paste functionality. Helium flag.",
 +     kOsLinux, FEATURE_VALUE_TYPE(features::kMiddleClickPasteEnabled)},
- #endif  /* CHROME_BROWSER_HELIUM_FLAG_ENTRIES_H_ */
+     {helium::kHeliumZenModeCommandLine,
+      "Zen Mode",
+      "Hides browser chrome (toolbar, tab strip, bookmarks bar) and reveals it "
 --- a/chrome/browser/renderer_preferences_util.cc
 +++ b/chrome/browser/renderer_preferences_util.cc
 @@ -9,6 +9,7 @@
