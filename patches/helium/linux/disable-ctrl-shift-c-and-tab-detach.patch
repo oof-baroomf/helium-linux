@@ -1,0 +1,26 @@
+--- a/chrome/browser/ui/accelerator_table.cc
++++ b/chrome/browser/ui/accelerator_table.cc
+@@ -269,10 +269,8 @@ const AcceleratorMapping kDevToolsAccelerators[] = {
+     {ui::VKEY_I, ui::EF_SHIFT_DOWN | ui::EF_CONTROL_DOWN, IDC_DEV_TOOLS},
+     {ui::VKEY_J, ui::EF_SHIFT_DOWN | ui::EF_CONTROL_DOWN,
+      IDC_DEV_TOOLS_CONSOLE},
+     {ui::VKEY_E, ui::EF_SHIFT_DOWN | ui::EF_CONTROL_DOWN,
+      IDC_DEV_TOOLS_INSPECT},
+-    {ui::VKEY_C, ui::EF_SHIFT_DOWN | ui::EF_CONTROL_DOWN,
+-     IDC_COPY_OR_INSPECT_SHORTCUT},
+     {ui::VKEY_U, ui::EF_CONTROL_DOWN, IDC_VIEW_SOURCE},
+ #endif  // !BUILDFLAG(IS_MAC)
+ };
+--- a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
++++ b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
+@@ -445,6 +445,9 @@ TabDragController* TabDragController::Create(
+           ref->source_context_->GetWidget()->GetNativeWindow())) {
+     ref->detach_behavior_ = DetachBehavior::kNotDetachable;
+   }
+ #else
++#if BUILDFLAG(IS_LINUX)
++  ref->detach_behavior_ = DetachBehavior::kNotDetachable;
++#endif
+ #if BUILDFLAG(IS_CHROMEOS)
+   // Tabs should not be detachable from the window if any of the following are
+   // true:

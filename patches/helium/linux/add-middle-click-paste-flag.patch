@@ -1,25 +1,28 @@
 --- a/chrome/browser/helium_flag_choices.h
 +++ b/chrome/browser/helium_flag_choices.h
-@@ -38,6 +38,8 @@ namespace helium {
+@@ -37,7 +37,9 @@ namespace helium {
+   constexpr const char kMiddleClickAutoscrollCommandLine[] = "middle-click-autoscroll";
    constexpr const char kHeliumCompactLocationWidthCommandLine[] =
        "helium-compact-location-width";
-   constexpr const char kHeliumZenModeCommandLine[] = "helium-zen-mode";
 +  constexpr const char kMiddleClickPasteEnabledCommandLine[] =
 +      "helium-middle-click-paste-enabled";
+   constexpr const char kHeliumZenModeCommandLine[] = "helium-zen-mode";
  }  // namespace helium
  
  #endif  /* CHROME_BROWSER_HELIUM_FLAG_CHOICES_H_ */
 --- a/chrome/browser/helium_flag_entries.h
 +++ b/chrome/browser/helium_flag_entries.h
-@@ -46,4 +46,8 @@
-      "Hides browser chrome (toolbar, tab strip, bookmarks bar) and reveals it "
-      "on hover near the window edges. Helium flag.",
-      kOsDesktop, FEATURE_VALUE_TYPE(features::kHeliumZenMode)},
+@@ -41,4 +41,8 @@
+      "Automatic address bar width in compact layout",
+      "Allows the location bar to automatically reduce its width in the compact browser layout. The omnibox may be uncomfortable to use. Helium flag.",
+      kOsDesktop, FEATURE_VALUE_TYPE(features::kHeliumCompactLocationWidth)},
 +    {helium::kMiddleClickPasteEnabledCommandLine,
 +     "Middle Click Paste",
 +     "Controls middle click paste functionality. Helium flag.",
 +     kOsLinux, FEATURE_VALUE_TYPE(features::kMiddleClickPasteEnabled)},
- #endif  /* CHROME_BROWSER_HELIUM_FLAG_ENTRIES_H_ */
+     {helium::kHeliumZenModeCommandLine,
+      "Zen Mode",
+      "Hides browser chrome (toolbar, tab strip, bookmarks bar) and reveals it "
 --- a/chrome/browser/renderer_preferences_util.cc
 +++ b/chrome/browser/renderer_preferences_util.cc
 @@ -9,6 +9,7 @@
@@ -54,7 +57,7 @@
  #include "ui/linux/linux_ui.h"
  #endif
  
-@@ -80,6 +82,13 @@ bool Clipboard::IsSupportedClipboardBuff
+@@ -79,6 +81,13 @@ bool Clipboard::IsSupportedClipboardBuff
  // static
  bool Clipboard::IsMiddleClickPasteEnabled() {
  #if BUILDFLAG(IS_LINUX)
@@ -70,18 +73,18 @@
    }
 --- a/ui/base/ui_base_features.cc
 +++ b/ui/base/ui_base_features.cc
-@@ -456,4 +456,6 @@ BASE_FEATURE_PARAM(int,
-                    "acceptable_latency_ms",
-                    50);
+@@ -436,4 +436,6 @@ BASE_FEATURE(kStringWidthCache, base::FE
+ BASE_FEATURE(kUseClipboardStrictVirtualFileCheck,
+              base::FEATURE_ENABLED_BY_DEFAULT);
  
 +BASE_FEATURE(kMiddleClickPasteEnabled, base::FEATURE_ENABLED_BY_DEFAULT);
 +
  }  // namespace features
 --- a/ui/base/ui_base_features.h
 +++ b/ui/base/ui_base_features.h
-@@ -294,6 +294,9 @@ BASE_DECLARE_FEATURE_PARAM(int, kCompens
+@@ -270,6 +270,9 @@ BASE_DECLARE_FEATURE(kStringWidthCache);
  COMPONENT_EXPORT(UI_BASE_FEATURES)
- BASE_DECLARE_FEATURE_PARAM(int, kCompensationAcceptableLatencyMs);
+ BASE_DECLARE_FEATURE(kUseClipboardStrictVirtualFileCheck);
  
 +COMPONENT_EXPORT(UI_BASE_FEATURES)
 +BASE_DECLARE_FEATURE(kMiddleClickPasteEnabled);
