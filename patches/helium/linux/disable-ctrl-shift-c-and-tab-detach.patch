@@ -13,54 +13,25 @@
  };
 --- a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
 +++ b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
-@@ -1250,16 +1250,24 @@ TabDragController::GetDragTargetForPoint(gfx::Point point_in_screen) {
-   gfx::NativeWindow local_window;
-   const Liveness state = GetLocalProcessWindow(
-       point_in_screen, current_state_ == DragState::kDraggingWindow,
-       &local_window);
-   if (state == Liveness::kDeleted) {
-     return std::tuple(Liveness::kDeleted, nullptr, nullptr);
-   }
- 
-+#if BUILDFLAG(IS_LINUX)
-+  // Keep Linux drags within the current browser window: allow reordering,
-+  // but don't detach tabs into a different window.
-+  if (local_window != attached_context_->GetWidget()->GetNativeWindow()) {
-+    local_window = nullptr;
-+  }
-+#endif
-+
-   if (local_window && CanAttachTo(local_window)) {
-     BrowserView* browser_view =
-         BrowserView::GetBrowserViewForNativeWindow(local_window);
-     TabDragContext* destination_tab_strip =
-         browser_view->tab_strip_view()->GetDragContext();
-     if (destination_tab_strip) {
-       if (DoesTabStripContain(destination_tab_strip, point_in_screen)) {
-         return std::tuple(Liveness::kAlive, destination_tab_strip, nullptr);
-@@ -1267,21 +1275,25 @@ TabDragController::GetDragTargetForPoint(gfx::Point point_in_screen) {
-                      GetTabDragPointResolver()->GetDragTarget(
-                          *browser_view, point_in_screen)) {
-         // The delegate will provide the context to attach to.
-         return std::tuple(Liveness::kAlive, nullptr, candidate);
+@@ -938,16 +938,21 @@ TabDragController::Liveness TabDragController::ContinueDragging(
+     if (current_drag_target_) {
+       TabDragContext* delegate_context =
+           current_drag_target_->OnTabDragUpdated(*this, point_in_screen);
+       if (!delegate_context && current_state_ == DragState::kDraggingWindow) {
+         delegate_context = attached_context_;
        }
+       target_context = delegate_context;
      }
++#if BUILDFLAG(IS_LINUX)
++    if (target_context != attached_context_) {
++      target_context = attached_context_;
++    }
++#endif
    }
  
-+#if BUILDFLAG(IS_LINUX)
-+  return std::tuple(Liveness::kAlive, attached_context_.get(), nullptr);
-+#else
-   return std::tuple(Liveness::kAlive,
-                     current_state_ == DragState::kDraggingWindow
-                         ? attached_context_.get()
-                         : nullptr,
-                     nullptr);
-+#endif
- }
+   if (target_context != attached_context_) {
+     is_dragging_new_browser_ = false;
+     did_restore_window_ = false;
  
- bool TabDragController::DoesTabStripContain(
-     TabDragContext* context,
-     const gfx::Point& point_in_screen) const {
-   TabDragPositioningDelegate* positioning_delegate =
-       context->GetPositioningDelegate();
-   if (!positioning_delegate) {
+     return DragBrowserToNewTabStrip(target_context, point_in_screen);
+   }
