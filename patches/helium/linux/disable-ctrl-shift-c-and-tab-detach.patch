@@ -23,7 +23,7 @@
        target_context = delegate_context;
      }
 +#if BUILDFLAG(IS_LINUX)
-+    if (target_context != attached_context_) {
++    if (!target_context) {
 +      target_context = attached_context_;
 +    }
 +#endif
