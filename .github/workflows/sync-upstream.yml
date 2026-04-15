@@ -62,22 +62,27 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --remote helium-chromium
 
-          if ! git diff --quiet --submodule=short; then
-            git add -A
-            git commit -m "sync: reapply custom linux automation"
-          fi
+          git add -A
+          desired_tree=$(git write-tree)
 
-          if [ "$(git rev-parse HEAD^{tree})" = "$origin_tree" ]; then
+          if [ "$desired_tree" = "$origin_tree" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          sync_commit=$(
+            git commit-tree "$desired_tree" \
+              -p origin/main \
+              -m "sync: reapply custom linux automation"
+          )
+          git reset --hard "$sync_commit"
 
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Push synced branch
         if: steps.sync.outputs.changed == 'true'
         shell: bash
-        run: git push --force-with-lease origin HEAD:main
+        run: git push origin HEAD:main
 
       - name: Dispatch build and release
         if: steps.sync.outputs.changed == 'true'

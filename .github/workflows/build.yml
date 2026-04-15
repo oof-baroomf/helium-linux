@@ -1,5 +1,8 @@
 name: Build Linux AppImage for Helium
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       runner:
@@ -26,13 +29,13 @@ jobs:
     secrets: inherit
     with:
       arch: x86_64
-      runs-on: ${{ inputs.runner }}
+      runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
 
   release:
     name: Create release
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ inputs.do-release }}
+    if: ${{ inputs.do-release == true }}
     steps:
       - uses: actions/checkout@v4
         with:
