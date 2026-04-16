@@ -10,6 +10,10 @@ inputs:
     description: 'Passphrase protecting the GPG private key'
     required: false
     default: ""
+  cache-name:
+    description: 'Artifact name to download build cache from'
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -19,7 +23,7 @@ runs:
     - name: Download build cache
       uses: actions/download-artifact@v4
       with:
-        name: build-cache-${{ env.ARCH }}
+        name: ${{ inputs.cache-name || format('build-cache-{0}', env.ARCH) }}
         path: .github/cache/
 
     - name: Import build cache

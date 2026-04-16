@@ -24,6 +24,8 @@ jobs:
   prep:
     name: Prepare resources
     runs-on: ${{ inputs.runs-on }}
+    outputs:
+      cache_name: ${{ steps.prepare.outputs.cache_name }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -51,20 +53,26 @@ jobs:
           retention-days: 1
 
       - name: Prepare build tree
+        id: prepare
         uses: ./.github/actions/build
         with:
           prepare-only: true
+          upload-cache-name: build-cache-${{ inputs.arch }}-prep
 
   build_part_01:
     runs-on: ${{ inputs.runs-on }}
     needs: prep
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.prep.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part01
 
   build_part_02:
     runs-on: ${{ inputs.runs-on }}
@@ -72,11 +80,15 @@ jobs:
     needs: build_part_01
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_01.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part02
 
   build_part_03:
     runs-on: ${{ inputs.runs-on }}
@@ -84,11 +96,15 @@ jobs:
     needs: build_part_02
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_02.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part03
 
   build_part_04:
     runs-on: ${{ inputs.runs-on }}
@@ -96,11 +112,15 @@ jobs:
     needs: build_part_03
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_03.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part04
 
   build_part_05:
     runs-on: ${{ inputs.runs-on }}
@@ -108,11 +128,15 @@ jobs:
     needs: build_part_04
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_04.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part05
 
   build_part_06:
     runs-on: ${{ inputs.runs-on }}
@@ -120,11 +144,15 @@ jobs:
     needs: build_part_05
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_05.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part06
 
   build_part_07:
     runs-on: ${{ inputs.runs-on }}
@@ -132,11 +160,15 @@ jobs:
     needs: build_part_06
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_06.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part07
 
   build_part_08:
     runs-on: ${{ inputs.runs-on }}
@@ -144,11 +176,15 @@ jobs:
     needs: build_part_07
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_07.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part08
 
   build_part_09:
     runs-on: ${{ inputs.runs-on }}
@@ -156,32 +192,54 @@ jobs:
     needs: build_part_08
     outputs:
       status: ${{ steps.build.outputs.status }}
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
         id: build
+        with:
+          download-cache-name: ${{ needs.build_part_08.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part09
 
   build_part_10:
     runs-on: ${{ inputs.runs-on }}
     if: needs.build_part_09.outputs.status == 'running'
     needs: build_part_09
+    outputs:
+      cache_name: ${{ steps.build.outputs.cache_name }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/build
-        with: { final: true }
+        id: build
+        with:
+          final: true
+          download-cache-name: ${{ needs.build_part_09.outputs.cache_name }}
+          upload-cache-name: build-cache-${{ inputs.arch }}-part10
 
   package:
     runs-on: ${{ inputs.runs-on }}
     if: ${{ !cancelled() && !failure()
             && contains(fromJSON('["success", "skipped"]'),
                         needs.build_part_10.result) }}
-    needs: build_part_10
+    needs:
+      - prep
+      - build_part_01
+      - build_part_02
+      - build_part_03
+      - build_part_04
+      - build_part_05
+      - build_part_06
+      - build_part_07
+      - build_part_08
+      - build_part_09
+      - build_part_10
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }
       - uses: ./.github/actions/package
         with:
+          cache-name: ${{ needs.build_part_10.outputs.cache_name || needs.build_part_09.outputs.cache_name || needs.build_part_08.outputs.cache_name || needs.build_part_07.outputs.cache_name || needs.build_part_06.outputs.cache_name || needs.build_part_05.outputs.cache_name || needs.build_part_04.outputs.cache_name || needs.build_part_03.outputs.cache_name || needs.build_part_02.outputs.cache_name || needs.build_part_01.outputs.cache_name || needs.prep.outputs.cache_name }}
           private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
