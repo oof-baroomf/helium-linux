@@ -13,25 +13,17 @@
  };
 --- a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
 +++ b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
-@@ -938,16 +938,21 @@ TabDragController::Liveness TabDragController::ContinueDragging(
-     if (current_drag_target_) {
-       TabDragContext* delegate_context =
-           current_drag_target_->OnTabDragUpdated(*this, point_in_screen);
-       if (!delegate_context && current_state_ == DragState::kDraggingWindow) {
-         delegate_context = attached_context_;
-       }
-       target_context = delegate_context;
-     }
+@@ -1001,5 +1001,13 @@ TabDragController::Liveness TabDragController::DragBrowserToNewTabStrip(
+   if (!target_context) {
 +#if BUILDFLAG(IS_LINUX)
-+    if (!target_context) {
-+      target_context = attached_context_;
++    if (current_state_ == DragState::kDraggingTabs &&
++        attached_context_->GetPositioningDelegate()) {
++      dragging_tabs_session_->MoveAttached(point_in_screen);
 +    }
++    return Liveness::kAlive;
++#else
+     return DetachIntoNewBrowserAndRunMoveLoop(point_in_screen);
 +#endif
    }
- 
-   if (target_context != attached_context_) {
-     is_dragging_new_browser_ = false;
-     did_restore_window_ = false;
- 
-     return DragBrowserToNewTabStrip(target_context, point_in_screen);
-   }
+
+ #if defined(USE_AURA)
