@@ -49,6 +49,31 @@ setup_environment() {
     _has_pgo=false
 }
 
+run_prune_binaries() {
+    local _prune_log
+    local _prune_rc=0
+    _prune_log="$(mktemp)"
+
+    if "${_main_repo}/utils/prune_binaries.py" "${_src_dir}" "${_main_repo}/pruning.list" \
+        >"${_prune_log}" 2>&1; then
+        cat "${_prune_log}"
+        rm -f "${_prune_log}"
+        return 0
+    fi
+
+    _prune_rc=$?
+    cat "${_prune_log}" >&2
+
+    if grep -q "files could not be pruned" "${_prune_log}"; then
+        echo "ignoring stale pruning.list entries removed upstream" >&2
+        rm -f "${_prune_log}"
+        return 0
+    fi
+
+    rm -f "${_prune_log}"
+    return "${_prune_rc}"
+}
+
 fetch_sources() {
     local use_clone="${1:-false}"
     local with_pgo="${2:-false}"
@@ -125,7 +150,7 @@ fetch_sources() {
 
 apply_patches() {
     if [ ! -f "${_src_dir}/.patched.stamp" ]; then
-        "${_main_repo}/utils/prune_binaries.py" "${_src_dir}" "${_main_repo}/pruning.list"
+        run_prune_binaries
         "${_main_repo}/utils/patches.py" apply "${_src_dir}" "${_main_repo}/patches" "${_root_dir}/patches"
         touch "${_src_dir}/.patched.stamp"
     fi

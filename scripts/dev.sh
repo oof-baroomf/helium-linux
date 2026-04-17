@@ -35,7 +35,7 @@ ___helium_setup() {
     rm -rf "$_src_dir" && mkdir -p "$_dl_cache" "$_src_dir"
 
     ___helium_info_pull
-    python3 "$_main_repo/utils/prune_binaries.py" "$_src_dir" "$_main_repo/pruning.list"
+    run_prune_binaries
     helium_resources
     ___helium_setup_gn
     setup_toolchain
