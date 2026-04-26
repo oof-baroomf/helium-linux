@@ -13,7 +13,7 @@
  };
 --- a/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
 +++ b/chrome/browser/ui/views/tabs/dragging/tab_drag_controller.cc
-@@ -1001,5 +1001,13 @@ TabDragController::Liveness TabDragController::DragBrowserToNewTabStrip(
+@@ -1001,4 +1001,12 @@ TabDragController::Liveness TabDragController::DragBrowserToNewTabStrip(
    if (!target_context) {
 +#if BUILDFLAG(IS_LINUX)
 +    if (current_state_ == DragState::kDraggingTabs &&
@@ -25,5 +25,4 @@
      return DetachIntoNewBrowserAndRunMoveLoop(point_in_screen);
 +#endif
    }
-
  #if defined(USE_AURA)

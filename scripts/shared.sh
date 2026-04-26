@@ -150,6 +150,8 @@ fetch_sources() {
 
 apply_patches() {
     if [ ! -f "${_src_dir}/.patched.stamp" ]; then
+        # Keep Chromium's password manager/passkey policy under user control.
+        sed -i '\#^helium/hop/disable-password-manager.patch$#d' "${_main_repo}/patches/series"
         run_prune_binaries
         "${_main_repo}/utils/patches.py" apply "${_src_dir}" "${_main_repo}/patches" "${_root_dir}/patches"
         touch "${_src_dir}/.patched.stamp"
