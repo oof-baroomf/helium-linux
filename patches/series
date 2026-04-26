@@ -10,3 +10,4 @@ helium/linux/add-middle-click-paste-flag.patch
 helium/linux/disable-ctrl-shift-c-and-tab-detach.patch
 helium/linux/add-error-for-missing-desktop-file.patch
 helium/linux/disable-tab-strokes.patch
+helium/linux/restore-password-autofill.patch
