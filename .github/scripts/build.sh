@@ -25,7 +25,7 @@ if [ "$_prepare_only" = true ]; then
     setup_toolchain
     gn_gen
 else
-    _task_timeout=18000
+    _task_timeout=9000
     cd "$_src_dir"
 
     set +e
