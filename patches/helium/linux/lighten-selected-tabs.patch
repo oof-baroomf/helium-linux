@@ -1,0 +1,54 @@
+--- a/chrome/browser/ui/color/material_tab_strip_color_mixer.cc
++++ b/chrome/browser/ui/color/material_tab_strip_color_mixer.cc
+@@ -21,6 +21,9 @@
+ /* 50% opacity */
+ constexpr SkAlpha kTabInactiveHoverAlpha = 0.5 * 255;
+ 
++/* 50% opacity */
++constexpr SkAlpha kSelectedTabLightenAlpha = 0.5 * 255;
++
+ }  // namespace
+ 
+ void AddMaterialTabStripColorMixer(ui::ColorProvider* provider,
+@@ -32,9 +35,12 @@
+   // TODO(crbug.com/40883407): Validate final mappings for ChromeRefresh23
+   // color.
+   ui::ColorMixer& mixer = provider->AddMixer();
+-  mixer[kColorTabBackgroundActiveFrameActive] = {kColorLocationBarBackground};
+-  mixer[kColorTabBackgroundActiveFrameInactive] = {
+-      kColorLocationBarBackground};
++  mixer[kColorTabBackgroundActiveFrameActive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
++  mixer[kColorTabBackgroundActiveFrameInactive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
+ 
+   mixer[kColorTabBackgroundInactiveFrameActive] = ui::SetAlpha(
+       kColorTabBackgroundActiveFrameActive, SK_AlphaTRANSPARENT);
+@@ -52,13 +58,18 @@
+       ui::SetAlpha(kColorTabBackgroundActiveFrameInactive,
+                    kTabInactiveHoverAlpha)};
+ 
+-  mixer[kColorTabBackgroundSelectedFrameActive] = {kColorLocationBarBackground};
+-  mixer[kColorTabBackgroundSelectedFrameInactive] = {
+-      kColorLocationBarBackground};
+-  mixer[kColorTabBackgroundSelectedHoverFrameActive] = {
+-      kColorLocationBarBackground};
+-  mixer[kColorTabBackgroundSelectedHoverFrameInactive] = {
+-      kColorLocationBarBackground};
++  mixer[kColorTabBackgroundSelectedFrameActive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
++  mixer[kColorTabBackgroundSelectedFrameInactive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
++  mixer[kColorTabBackgroundSelectedHoverFrameActive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
++  mixer[kColorTabBackgroundSelectedHoverFrameInactive] =
++      ui::AlphaBlend(SK_ColorWHITE, kColorLocationBarBackground,
++                     kSelectedTabLightenAlpha);
+ #if !BUILDFLAG(IS_ANDROID)
+   mixer[kColorTabDiscardRingFrameActive] = {ui::kColorSysStateInactiveRing};
+   mixer[kColorTabDiscardRingFrameInactive] = {kColorTabDiscardRingFrameActive};
