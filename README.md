@@ -1,6 +1,5 @@
 # helium-linux
-Linux builds, packaging, and development tooling for the
-[Helium Browser](https://github.com/imputnet/helium).
+This is just Helium for Linux with the password manager-related things added back.
 
 ## Downloads
 Helium is available in multiple formats depending on your distribution.<br>
